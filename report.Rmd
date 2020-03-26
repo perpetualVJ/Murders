@@ -1,0 +1,55 @@
+---
+title: "Gun-Murders"
+author: "Vishal Jotwani"
+date: "`r format(Sys.Date())`"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Introduction
+This is a report on 2010 gun murder rates obtained from FBI reports. The original data was obtained from [this Wikipedia page](https://en.wikipedia.org/wiki/Murder_in_the_United_States_by_state).
+
+We are going to use the following libraries:
+
+```{r loading-libs, message=FALSE}
+library(tidyverse)
+library(ggrepel)
+library(ggthemes)
+library(ggrepel)
+```
+  
+and load the data we already wrangled:
+
+```{r}
+load("rdas/murders.rda")
+```
+
+## Computing average murder rate in USA
+
+```{r avg}
+r <- murders %>% summarize(rate = sum(total) / sum(population) * 10 ^ 6) %>% pull(rate)
+```
+
+## Murder rate by Population in millions for every State 
+
+We note the large state to state variability by generating scatterplot showing the murder rate by population in millions.
+
+```{r murder-rate-by-population, echo=FALSE}
+p <- murders %>% ggplot() 
+
+p + geom_point(aes(x = population / 10 ^ 6, y = total, col = region), size = 3) + 
+  geom_text_repel(aes(x = population / 10 ^ 6, y = total, label = abb), nudge_x = 0.01) +
+  geom_abline(intercept = log10(r),lty = 2, color = "darkgrey") +
+  scale_x_continuous(trans = "log10") +
+  scale_y_continuous(trans = "log10") +
+  xlab("Populations in millions (log scale)") +
+  ylab("Total number of murders (log scale)") +
+  ggtitle("US Gun Murders in 2010") +
+  scale_color_discrete(name = "Region") +
+  theme_few()
+```
+
+We note that for south region most of the states are above country's average murder rate.
